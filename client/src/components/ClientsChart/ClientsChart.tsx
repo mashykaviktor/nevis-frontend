@@ -15,7 +15,7 @@ const CHART_COLORS = ['#b29df8', '#f4beb4', '#a75e6e', '#8fbf9f', '#7fa8c9'];
  * only the bottom-most series gets bottom corners and only the top-most
  * gets top corners; a single-series stack gets all four.
  */
-function getStackedBarRadius(index: number, length: number): [number, number, number, number] | undefined {
+export function getStackedBarRadius(index: number, length: number): [number, number, number, number] | undefined {
   const isFirst = index === 0;
   const isLast = index === length - 1;
   if (isFirst && isLast) return [4, 4, 4, 4];

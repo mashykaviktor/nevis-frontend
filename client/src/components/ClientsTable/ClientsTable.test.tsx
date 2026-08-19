@@ -81,10 +81,13 @@ describe('ClientsTable', () => {
     await user.click(screen.getByRole('button', { name: /expand branch 1/i }));
     expect(screen.getByText('Anna Blackwood')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /collapse branch 1/i }));
+    const collapseToggle = screen.getByRole('button', { name: /collapse branch 1/i });
+    await user.click(collapseToggle);
 
     expect(screen.queryByText('Anna Blackwood')).not.toBeInTheDocument();
     expect(screen.queryByText('James Walker')).not.toBeInTheDocument();
+    expect(collapseToggle).toHaveAttribute('aria-expanded', 'false');
+    expect(collapseToggle.closest('tr')).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('toggles via the keyboard (Enter), since it is a native button', async () => {

@@ -37,4 +37,45 @@ describe('Dashboard', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Branch 1 expanded, 4 rows shown');
   });
+
+  it('announces that a row collapsed, without a row count', async () => {
+    mockFetchOnce();
+    const user = userEvent.setup();
+    render(<Dashboard />);
+
+    await waitFor(() => expect(screen.getByText('Branch 1')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: /expand branch 1/i }));
+    await user.click(screen.getByRole('button', { name: /collapse branch 1/i }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Branch 1 collapsed');
+  });
+
+  it('shows a loading indicator while the request is in flight', () => {
+    vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})));
+
+    render(<Dashboard />);
+
+    expect(screen.getByRole('status')).toHaveTextContent(/loading/i);
+  });
+
+  it('shows an error message with a retry button when the request fails, and retries on click', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Simulated server error'))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ company: sampleCompany, months: sampleMonths }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    render(<Dashboard />);
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Simulated server error'));
+
+    await user.click(screen.getByRole('button', { name: /retry/i }));
+
+    await waitFor(() => expect(screen.getByText('Branch 1')).toBeInTheDocument());
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

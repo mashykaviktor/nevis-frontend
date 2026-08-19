@@ -15,12 +15,13 @@ export const companyRouter = Router();
  * Serves the full client-book tree plus the month labels it's aligned to.
  * A small artificial delay makes the UI's loading state visible in normal
  * use; `?simulateError=1` lets the error state be exercised on demand
- * without having to stop the server.
+ * without having to stop the server. Disabled outside development so it
+ * can't be used to force errors against a production deployment.
  */
 companyRouter.get('/company', async (req, res) => {
   await delay(ARTIFICIAL_DELAY_MS);
 
-  if (req.query.simulateError === '1') {
+  if (process.env.NODE_ENV !== 'production' && req.query.simulateError === '1') {
     res.status(500).json({ error: 'Simulated server error' });
     return;
   }
