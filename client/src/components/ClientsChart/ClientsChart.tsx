@@ -11,6 +11,20 @@ interface ClientsChartProps {
 const CHART_COLORS = ['#b29df8', '#f4beb4', '#a75e6e', '#8fbf9f', '#7fa8c9'];
 
 /**
+ * The mockup rounds the whole stacked column (4px), not each segment — so
+ * only the bottom-most series gets bottom corners and only the top-most
+ * gets top corners; a single-series stack gets all four.
+ */
+function getStackedBarRadius(index: number, length: number): [number, number, number, number] | undefined {
+  const isFirst = index === 0;
+  const isLast = index === length - 1;
+  if (isFirst && isLast) return [4, 4, 4, 4];
+  if (isLast) return [4, 4, 0, 0];
+  if (isFirst) return [0, 0, 4, 4];
+  return undefined;
+}
+
+/**
  * A real stacked bar chart: one series per direct child of `node` (see
  * `getChartSeries`), so it always stacks something meaningful instead of
  * fabricating a channel breakdown the data doesn't have. The chart's SVG
@@ -54,6 +68,7 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
                 name={s.name}
                 stackId="clients"
                 fill={CHART_COLORS[index % CHART_COLORS.length]}
+                radius={getStackedBarRadius(index, series.length)}
               />
             ))}
           </BarChart>
