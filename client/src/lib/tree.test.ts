@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ClientNode } from '@nevis/shared';
-import { flattenVisibleRows, getChartSeries, getChildren, toChartData } from './tree';
+import { flattenVisibleRows, getChartSeries, getChildren, getChildrenKind, getNodeKind, toChartData } from './tree';
 
 const months = ['Jan', 'Feb'];
 
@@ -139,5 +139,27 @@ describe('flattenVisibleRows', () => {
     const rows = flattenVisibleRows(company, new Set(['company', 'branch1', 'anna']));
 
     expect(rows.map((r) => r.node.id)).toContain('existing');
+  });
+});
+
+describe('getChildrenKind', () => {
+  it('names the key a node children live under', () => {
+    expect(getChildrenKind(company)).toBe('branches');
+    expect(getChildrenKind(branch1)).toBe('employees');
+    expect(getChildrenKind(anna)).toBe('channels');
+  });
+
+  it('returns null for a leaf', () => {
+    expect(getChildrenKind(branch2)).toBeNull();
+    expect(getChildrenKind(james)).toBeNull();
+  });
+});
+
+describe('getNodeKind', () => {
+  it('maps depth to the fixed Company/Branch/Employee/Channel schema', () => {
+    expect(getNodeKind(0)).toBe('company');
+    expect(getNodeKind(1)).toBe('branch');
+    expect(getNodeKind(2)).toBe('employee');
+    expect(getNodeKind(3)).toBe('channel');
   });
 });

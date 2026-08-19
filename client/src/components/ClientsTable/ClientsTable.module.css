@@ -1,0 +1,39 @@
+.scrollWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.scrollWrapper:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 40rem;
+}
+
+.nameHeaderCell {
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  background: var(--color-bg-subtle);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.monthHeaderCell {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-bg-subtle);
+  text-align: right;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}

@@ -53,6 +53,30 @@ export function toChartData(node: ClientNode, months: string[]): ChartDatum[] {
   });
 }
 
+export type ChildrenKind = 'branches' | 'employees' | 'channels';
+
+/** Which key a node's children live under, for building human-readable labels. */
+export function getChildrenKind(node: ClientNode): ChildrenKind | null {
+  if (node.branches) return 'branches';
+  if (node.employees) return 'employees';
+  if (node.channels) return 'channels';
+  return null;
+}
+
+export type NodeKind = 'company' | 'branch' | 'employee' | 'channel';
+
+/**
+ * The tree always has this fixed shape (Company → Branch → Employee →
+ * Channel), so a row's depth deterministically maps to a node kind — no
+ * separate `kind` field is needed on the data itself.
+ */
+export function getNodeKind(depth: number): NodeKind {
+  if (depth === 0) return 'company';
+  if (depth === 1) return 'branch';
+  if (depth === 2) return 'employee';
+  return 'channel';
+}
+
 export interface FlatRow {
   node: ClientNode;
   depth: number;
