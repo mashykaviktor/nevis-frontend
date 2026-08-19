@@ -192,6 +192,18 @@ selection/expansion — this matches the mockup's literal layout (one fixed char
 independently-expandable table). Syncing the chart to a selected table row is listed under
 _What I'd do next_.
 
+### Avatars
+
+The mockup's employee rows (adviser level) show a real photo per person in a 20px circle. The
+brief's payload — served verbatim (above) — has no photo/image field for any node, and the
+mockup's photos are third-party imagery embedded in the design file with no license to redistribute
+as static assets, so neither "add a photo field" nor "export the mockup's images" was on the table.
+
+**Decision**: render a deterministic initials-on-color avatar instead, sized and positioned to
+match the mockup's 20px circle. The color is derived from the employee's `id` (a small fixed
+palette, hashed), so each person still reads as visually distinct across renders — the way the
+mockup's different photos do — without depending on data the API doesn't provide.
+
 ### Tooling versions
 
 A few dependencies had just shipped major versions with tighter Node engine requirements or

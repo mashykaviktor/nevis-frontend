@@ -32,8 +32,9 @@ export function ClientsTable({ rows, months, expandedIds, onToggle }: ClientsTab
         </caption>
         <thead>
           <tr>
+            {/* Visually blank in the mockup's header row — text stays for the column's accessible name. */}
             <th scope="col" className={styles.nameHeaderCell}>
-              Name
+              <span className="visually-hidden">Name</span>
             </th>
             {months.map((month) => (
               <th scope="col" key={month} className={styles.monthHeaderCell}>

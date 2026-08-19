@@ -8,16 +8,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: 50%;
-  background: var(--color-accent);
+  background: var(--avatar-bg, var(--color-accent));
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.55rem;
   font-weight: 600;
   flex-shrink: 0;
 }
 
-.companyName {
-  font-weight: 600;
-}

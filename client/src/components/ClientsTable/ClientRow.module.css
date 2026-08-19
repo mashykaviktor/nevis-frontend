@@ -1,4 +1,5 @@
 .nameCell {
+  height: 3.5rem;
   text-align: left;
   font-weight: 400;
   background: var(--color-bg);
@@ -25,6 +26,7 @@
 }
 
 .valueCell {
+  height: 3.5rem;
   text-align: right;
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
