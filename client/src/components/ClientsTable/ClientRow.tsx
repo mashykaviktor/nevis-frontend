@@ -1,4 +1,4 @@
-import { getChildren, getChildrenKind, getNodeKind, type FlatRow } from '../../lib/tree';
+import { getChildren, getChildrenKind, getNodeKind, type ChildrenKind, type FlatRow } from '../../lib/tree';
 import { ExpandToggle } from './ExpandToggle';
 import { RowName } from './RowName';
 import styles from './ClientRow.module.css';
@@ -50,6 +50,16 @@ function buildToggleLabel(row: FlatRow, expanded: boolean): string {
   const kind = getChildrenKind(node);
   const count = getChildren(node)?.length ?? 0;
   const action = expanded ? 'Collapse' : 'Expand';
-  const countPart = kind ? `, ${count} ${kind}` : '';
+  const countPart = kind ? `, ${count} ${singularize(kind, count)}` : '';
   return `${action} ${node.name}, level ${depth + 1}${countPart}`;
+}
+
+const SINGULAR: Record<ChildrenKind, string> = {
+  branches: 'branch',
+  employees: 'employee',
+  channels: 'channel',
+};
+
+function singularize(kind: ChildrenKind, count: number): string {
+  return count === 1 ? SINGULAR[kind] : kind;
 }

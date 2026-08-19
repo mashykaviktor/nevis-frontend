@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ClientNode } from '@nevis/shared';
 import { useExpandedRows } from '../../hooks/useExpandedRows';
 import { flattenVisibleRows } from '../../lib/tree';
 import { sampleCompany, sampleMonths } from '../../test/fixtures';
@@ -108,6 +109,23 @@ describe('ClientsTable', () => {
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('Anna Blackwood')).toBeInTheDocument();
+  });
+
+  it('singularizes the child-count word in the toggle label for a count of exactly one', () => {
+    const onlyChild: ClientNode = { id: 'only-child', name: 'Only Employee', values: [1, 1] };
+    const oneChildBranch: ClientNode = {
+      id: 'one-child-branch',
+      name: 'Solo Branch',
+      values: [1, 1],
+      employees: [onlyChild],
+    };
+    const rows = flattenVisibleRows(oneChildBranch, new Set());
+
+    render(<ClientsTable rows={rows} months={sampleMonths} expandedIds={new Set()} onToggle={() => {}} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Expand Solo Branch, level 1, 1 employee' }),
+    ).toBeInTheDocument();
   });
 
   it('reveals the deepest level (channels) once every ancestor is expanded', async () => {

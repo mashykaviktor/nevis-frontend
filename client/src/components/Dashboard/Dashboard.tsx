@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { ClientNode } from '@nevis/shared';
 import { useCompanyData } from '../../hooks/useCompanyData';
 import { useExpandedRows } from '../../hooks/useExpandedRows';
-import { flattenVisibleRows, getChildren, type FlatRow } from '../../lib/tree';
+import { flattenVisibleRows, type FlatRow } from '../../lib/tree';
 import { Loading } from '../StatusView/Loading';
 import { ErrorView } from '../StatusView/ErrorView';
 import { ClientsTable } from '../ClientsTable/ClientsTable';
@@ -35,14 +35,21 @@ function DashboardContent({ company, months }: DashboardContentProps) {
 
   const handleToggle = (row: FlatRow) => {
     const willExpand = !expandedIds.has(row.node.id);
-    toggle(row.node.id);
 
-    const childCount = getChildren(row.node)?.length ?? 0;
-    setAnnouncement(
-      willExpand
-        ? `${row.node.name} expanded, ${childCount} row${childCount === 1 ? '' : 's'} shown`
-        : `${row.node.name} collapsed`,
-    );
+    if (willExpand) {
+      // Count everything that becomes visible, not just direct children — a
+      // descendant may already be expanded from before (its state survives a
+      // parent collapse, see useExpandedRows), so re-expanding this node can
+      // reveal grandchildren too.
+      const expandedWithNode = new Set(expandedIds);
+      expandedWithNode.add(row.node.id);
+      const revealedCount = flattenVisibleRows(row.node, expandedWithNode).length - 1;
+      setAnnouncement(`${row.node.name} expanded, ${revealedCount} row${revealedCount === 1 ? '' : 's'} shown`);
+    } else {
+      setAnnouncement(`${row.node.name} collapsed`);
+    }
+
+    toggle(row.node.id);
   };
 
   return (

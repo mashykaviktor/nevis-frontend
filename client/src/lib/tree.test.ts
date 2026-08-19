@@ -44,41 +44,71 @@ describe('getChildren', () => {
     expect(getChildren(james)).toBeUndefined();
     expect(getChildren(existingClients)).toBeUndefined();
   });
+
+  it('treats an empty children array the same as an absent key, falling through to the next one', () => {
+    const node: ClientNode = {
+      id: 'weird',
+      name: 'Weird',
+      values: [1],
+      branches: [],
+      employees: [james],
+    };
+
+    expect(getChildren(node)).toEqual([james]);
+    expect(getChildrenKind(node)).toBe('employees');
+  });
 });
 
 describe('getChartSeries', () => {
-  it('returns one series per direct child, using the children own values', () => {
+  it('returns one series per direct child, keyed by id (unique) with name as the label', () => {
     expect(getChartSeries(company)).toEqual([
-      { name: 'Branch 1', values: [7, 15] },
-      { name: 'Branch 2', values: [3, 5] },
+      { key: 'branch1', name: 'Branch 1', values: [7, 15] },
+      { key: 'branch2', name: 'Branch 2', values: [3, 5] },
     ]);
   });
 
   it('returns channel series for a node that has channels', () => {
     expect(getChartSeries(anna)).toEqual([
-      { name: 'Existing clients', values: [3, 6] },
-      { name: 'New organic', values: [1, 2] },
+      { key: 'existing', name: 'Existing clients', values: [3, 6] },
+      { key: 'new-organic', name: 'New organic', values: [1, 2] },
     ]);
   });
 
   it('falls back to a single "Total" series for a leaf, without fabricating a breakdown', () => {
-    expect(getChartSeries(branch2)).toEqual([{ name: 'Total', values: [3, 5] }]);
-    expect(getChartSeries(james)).toEqual([{ name: 'Total', values: [3, 7] }]);
+    expect(getChartSeries(branch2)).toEqual([{ key: 'total', name: 'Total', values: [3, 5] }]);
+    expect(getChartSeries(james)).toEqual([{ key: 'total', name: 'Total', values: [3, 7] }]);
+  });
+
+  it('keeps two same-named siblings as distinct series, since it keys by id not name', () => {
+    const twins: ClientNode = {
+      id: 'twins-parent',
+      name: 'Twins Parent',
+      values: [1, 1],
+      employees: [
+        { id: 'twin-a', name: 'Chen', values: [1, 2] },
+        { id: 'twin-b', name: 'Chen', values: [3, 4] },
+      ],
+    };
+
+    expect(getChartSeries(twins)).toEqual([
+      { key: 'twin-a', name: 'Chen', values: [1, 2] },
+      { key: 'twin-b', name: 'Chen', values: [3, 4] },
+    ]);
   });
 });
 
 describe('toChartData', () => {
-  it('maps a multi-series node into one row per month', () => {
+  it('maps a multi-series node into one row per month, keyed by id', () => {
     expect(toChartData(company, months)).toEqual([
-      { month: 'Jan', 'Branch 1': 7, 'Branch 2': 3 },
-      { month: 'Feb', 'Branch 1': 15, 'Branch 2': 5 },
+      { month: 'Jan', branch1: 7, branch2: 3 },
+      { month: 'Feb', branch1: 15, branch2: 5 },
     ]);
   });
 
-  it('maps a leaf node into a single "Total" column', () => {
+  it('maps a leaf node into a single "total" column', () => {
     expect(toChartData(branch2, months)).toEqual([
-      { month: 'Jan', Total: 3 },
-      { month: 'Feb', Total: 5 },
+      { month: 'Jan', total: 3 },
+      { month: 'Feb', total: 5 },
     ]);
   });
 });

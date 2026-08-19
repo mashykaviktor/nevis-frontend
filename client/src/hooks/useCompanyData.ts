@@ -25,7 +25,10 @@ export function useCompanyData() {
     setState({ status: 'loading' });
 
     fetchCompanyData(controller.signal)
-      .then((data) => setState({ status: 'success', data }))
+      .then((data) => {
+        if (controller.signal.aborted) return;
+        setState({ status: 'success', data });
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         setState({

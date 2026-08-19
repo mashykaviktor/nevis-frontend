@@ -121,6 +121,10 @@ running chart or API, and `RowName`'s per-level rendering (company / branch / ad
   the same-fallback behavior for a leaf node, on the actual rendered chart (Recharts'
   `ResponsiveContainer` is mocked, since jsdom can't measure real layout and it would otherwise
   render nothing).
+- `client/src/components/Dashboard/Dashboard.test.tsx` — an integration test (mocked `fetch`)
+  covering a real bug an ultra code review caught: the `aria-live` expand announcement must count
+  every row revealed, not just the toggled node's direct children, since a descendant can already
+  be expanded from before and resume that state (see _Assumptions_, data model).
 - `server/src/routes/company.test.ts` — a smoke test on the one real endpoint (status, shape,
   `?simulateError=1`). Deliberately minimal: it's a static payload, so the time was better spent
   on the client-side logic and accessibility above.

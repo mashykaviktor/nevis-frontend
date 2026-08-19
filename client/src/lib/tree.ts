@@ -1,20 +1,48 @@
 import type { ClientNode } from '@nevis/shared';
 
+export type ChildrenKind = 'branches' | 'employees' | 'channels';
+
+interface ChildrenInfo {
+  kind: ChildrenKind;
+  children: ClientNode[];
+}
+
 /**
  * A node's children live under one of three differently-named keys
  * depending on its level (`branches` / `employees` / `channels`), and a
- * node may have none of them. This is the single place that knows that.
+ * node may have none of them. This is the single place that knows that —
+ * `getChildren` and `getChildrenKind` both derive from it, so they can't
+ * disagree with each other.
  *
- * Assumes a node never has more than one of the three keys populated at
+ * A key only counts as "present" if it actually has entries: an empty
+ * array is treated the same as an absent key, not as real (empty)
+ * children — otherwise a node with e.g. `branches: []` and a populated
+ * `employees` would have its real employees silently hidden.
+ *
+ * Assumes a node never has more than one of the three keys non-empty at
  * once, which holds for the brief's dataset; if that ever changed, this
  * would silently prefer `branches`, then `employees`, then `channels`.
  */
+function resolveChildren(node: ClientNode): ChildrenInfo | null {
+  if (node.branches?.length) return { kind: 'branches', children: node.branches };
+  if (node.employees?.length) return { kind: 'employees', children: node.employees };
+  if (node.channels?.length) return { kind: 'channels', children: node.channels };
+  return null;
+}
+
 export function getChildren(node: ClientNode): ClientNode[] | undefined {
-  return node.branches ?? node.employees ?? node.channels;
+  return resolveChildren(node)?.children;
+}
+
+/** Which key a node's children live under, for building human-readable labels. */
+export function getChildrenKind(node: ClientNode): ChildrenKind | null {
+  return resolveChildren(node)?.kind ?? null;
 }
 
 export interface ChartSeries {
-  /** The child's own name; used both as the Recharts dataKey and its legend label. */
+  /** The child's own id — guaranteed unique among siblings, unlike `name`. */
+  key: string;
+  /** The child's own name; used as the Recharts series/legend label. */
   name: string;
   values: number[];
 }
@@ -29,15 +57,15 @@ export function getChartSeries(node: ClientNode): ChartSeries[] {
   const children = getChildren(node);
 
   if (children && children.length > 0) {
-    return children.map((child) => ({ name: child.name, values: child.values }));
+    return children.map((child) => ({ key: child.id, name: child.name, values: child.values }));
   }
 
-  return [{ name: 'Total', values: node.values }];
+  return [{ key: 'total', name: 'Total', values: node.values }];
 }
 
 export interface ChartDatum {
   month: string;
-  [seriesName: string]: string | number;
+  [seriesKey: string]: string | number;
 }
 
 /** Shapes a node's chart series into Recharts' `data` prop, one row per month. */
@@ -47,20 +75,10 @@ export function toChartData(node: ClientNode, months: string[]): ChartDatum[] {
   return months.map((month, index) => {
     const datum: ChartDatum = { month };
     for (const s of series) {
-      datum[s.name] = s.values[index] ?? 0;
+      datum[s.key] = s.values[index] ?? 0;
     }
     return datum;
   });
-}
-
-export type ChildrenKind = 'branches' | 'employees' | 'channels';
-
-/** Which key a node's children live under, for building human-readable labels. */
-export function getChildrenKind(node: ClientNode): ChildrenKind | null {
-  if (node.branches) return 'branches';
-  if (node.employees) return 'employees';
-  if (node.channels) return 'channels';
-  return null;
 }
 
 export type NodeKind = 'company' | 'branch' | 'employee' | 'channel';

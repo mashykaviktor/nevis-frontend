@@ -37,7 +37,13 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
             <Tooltip />
             <Legend />
             {series.map((s, index) => (
-              <Bar key={s.name} dataKey={s.name} stackId="clients" fill={CHART_COLORS[index % CHART_COLORS.length]} />
+              <Bar
+                key={s.key}
+                dataKey={s.key}
+                name={s.name}
+                stackId="clients"
+                fill={CHART_COLORS[index % CHART_COLORS.length]}
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>
