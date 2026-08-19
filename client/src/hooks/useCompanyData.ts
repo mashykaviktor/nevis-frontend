@@ -18,6 +18,10 @@ export function useCompanyData() {
 
   useEffect(() => {
     const controller = new AbortController();
+    // Resets a stale error/success state back to loading the moment `attempt`
+    // changes (retry), so the UI doesn't flash old data/error while the new
+    // request is in flight.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState({ status: 'loading' });
 
     fetchCompanyData(controller.signal)

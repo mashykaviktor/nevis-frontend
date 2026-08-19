@@ -16,10 +16,14 @@ interface ClientsTableProps {
  */
 export function ClientsTable({ rows, months, expandedIds, onToggle }: ClientsTableProps) {
   return (
+    // This is the WAI-ARIA "scrollable region" pattern (APG scrolling technique
+    // SCR29) — tabindex=0 on the region is what lets keyboard users reach and
+    // scroll it, since a table has no native means of keyboard-driven scrolling.
     <div
       className={styles.scrollWrapper}
       role="region"
       aria-label="Clients table, scroll horizontally for more months"
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
     >
       <table className={styles.table}>
