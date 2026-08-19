@@ -8,3 +8,21 @@
   margin: 2rem auto;
   text-align: left;
 }
+
+.retryButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background: var(--color-bg-subtle);
+}
+
+.retryButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

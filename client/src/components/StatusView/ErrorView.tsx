@@ -9,7 +9,7 @@ export function ErrorView({ message, onRetry }: ErrorViewProps) {
   return (
     <div className={styles.status} role="alert">
       <p>{message}</p>
-      <button type="button" onClick={onRetry}>
+      <button type="button" className={styles.retryButton} onClick={onRetry}>
         Retry
       </button>
     </div>

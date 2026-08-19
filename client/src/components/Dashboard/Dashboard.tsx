@@ -47,7 +47,7 @@ function DashboardContent({ company, months }: DashboardContentProps) {
 
   return (
     <main className={styles.dashboard}>
-      <h1>Clients</h1>
+      <h1 className={styles.heading}>Clients</h1>
       <ClientsChart node={company} months={months} />
       <ClientsTable rows={rows} months={months} expandedIds={expandedIds} onToggle={handleToggle} />
       <div className="visually-hidden" role="status" aria-live="polite">
