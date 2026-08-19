@@ -1,0 +1,12 @@
+.chartWrapper {
+  overflow-x: auto;
+  background: var(--color-bg);
+  border-radius: 0.5rem;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.chartInner {
+  /* Wide enough for all 12 horizontal "Mon YYYY" x-axis labels (see ClientsChart.tsx)
+     to sit without colliding — narrower than this and neighboring labels overlap. */
+  min-width: 58rem;
+}
