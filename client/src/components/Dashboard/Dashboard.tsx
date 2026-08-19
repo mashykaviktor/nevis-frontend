@@ -6,6 +6,7 @@ import { flattenVisibleRows, getChildren, type FlatRow } from '../../lib/tree';
 import { Loading } from '../StatusView/Loading';
 import { ErrorView } from '../StatusView/ErrorView';
 import { ClientsTable } from '../ClientsTable/ClientsTable';
+import { ClientsChart } from '../ClientsChart/ClientsChart';
 import styles from './Dashboard.module.css';
 
 export function Dashboard() {
@@ -47,7 +48,7 @@ function DashboardContent({ company, months }: DashboardContentProps) {
   return (
     <main className={styles.dashboard}>
       <h1>Clients</h1>
-      {/* ClientsChart lands in the next stage. */}
+      <ClientsChart node={company} months={months} />
       <ClientsTable rows={rows} months={months} expandedIds={expandedIds} onToggle={handleToggle} />
       <div className="visually-hidden" role="status" aria-live="polite">
         {announcement}
