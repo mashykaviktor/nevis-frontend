@@ -27,13 +27,13 @@ No change needed — already correct before this pass:
 
 ## Confirmed mismatches (fixed)
 
-| Finding | Fix |
-| --- | --- |
-| Table body text was visibly smaller than the page's 16px default in the design | Added a type-scale token (`--font-size-table`, ~13px) |
-| Table rows are alternately shaded in the component spec | Applied a zebra-stripe background (`--row-stripe-bg`) — see [_Zebra striping_](#zebra-striping) below |
-| Row hover state didn't read consistently across the sticky name column and the rest of the row | The sticky name cell now inherits the current row's `--row-bg` (zebra stripe or hover), instead of a flat white seam next to the striped/hovered value cells |
-| Chart and table card containers had inconsistent treatment (chart: radius + padding, no border; table: radius, no padding, a stray one-sided `border-top`) | Unified via the `Surface` primitive — both get a full 1px border and consistent padding |
-| The client had zero media queries anywhere | Added one breakpoint that steps outer page padding down below 640px |
+| Finding                                                                                                                                                    | Fix                                                                                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Table body text was visibly smaller than the page's 16px default in the design                                                                             | Added a type-scale token (`--font-size-table`, ~13px)                                                                                                        |
+| Table rows are alternately shaded in the component spec                                                                                                    | Applied a zebra-stripe background (`--row-stripe-bg`) — see [_Zebra striping_](#zebra-striping) below                                                        |
+| Row hover state didn't read consistently across the sticky name column and the rest of the row                                                             | The sticky name cell now inherits the current row's `--row-bg` (zebra stripe or hover), instead of a flat white seam next to the striped/hovered value cells |
+| Chart and table card containers had inconsistent treatment (chart: radius + padding, no border; table: radius, no padding, a stray one-sided `border-top`) | Unified via the `Surface` primitive — both get a full 1px border and consistent padding                                                                      |
+| The client had zero media queries anywhere                                                                                                                 | Added one breakpoint that steps outer page padding down below 640px                                                                                          |
 
 ## Deliberate deviations, kept
 
@@ -54,9 +54,8 @@ tooltip style, bar corner radius — but deliberately **not** the design's
 channel-hex palette: applying `Existing-clients`/`New-organic`/`New-paid`
 colors to branch segments would misrepresent what the segments actually are.
 The chart uses a separate neutral palette (`--chart-color-1..3`) instead; the
-design's own channel hexes are kept as reference-only tokens
-(`--channel-existing` / `--channel-organic` / `--channel-paid`), not applied
-anywhere in the runtime UI.
+design's own acquisition-channel colors are documented as reference values in
+this audit, but are not runtime tokens and are not applied to the branch chart.
 
 X-axis month labels are horizontal in the design, not rotated. An earlier
 draft of this README incorrectly claimed the labels were rotated; that

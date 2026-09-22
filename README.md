@@ -81,10 +81,10 @@ duplicated across three files), surface tokens (background/border/radius shared 
 table cards), a zebra-stripe background token, and three separate color palettes that used to be
 either unlabeled or living as hex arrays inside `.tsx` components:
 
-- `--channel-existing` / `--channel-organic` / `--channel-paid` — the design's acquisition-channel
-  colors, kept for reference but not applied anywhere in the runtime UI (see
-  [_Design fidelity_](#design-fidelity)). Previously named `--color-accent`/`-2`/`-3`, which gave
-  no indication of what they represented or that the chart deliberately doesn't use them.
+- The design's acquisition-channel colors (`Existing clients`, `New organic`, `New paid`) are
+  documented as reference values in `docs/design-audit.md`, but are intentionally not runtime
+  tokens because the Company-level chart uses real Branch 1/2/3 data rather than fabricated
+  acquisition-channel values.
 - `--chart-color-1..3` — the neutral palette the branch chart actually renders with.
 - `--avatar-color-1..6` — the employee-avatar palette, extracted unchanged from `RowName.tsx`'s
   hex array.
