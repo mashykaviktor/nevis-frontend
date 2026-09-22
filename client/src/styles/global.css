@@ -6,13 +6,15 @@
   --color-border: #e2e2e0;
   --color-text: #141413;
   --color-text-muted: #6b6b6b;
-  /* Same hexes as the design's channel colors (Existing clients / New organic
-     / New paid) — kept defined but not repurposed for the chart, which
-     stacks by branch, not channel (see tokens.css --chart-color-*). */
-  --color-accent: #b29df8;
-  --color-accent-2: #f4beb4;
-  --color-accent-3: #a75e6e;
-  /* From the same lavender family as --color-accent, not Tailwind blue-600 */
+  /* The design's acquisition-channel colors (Existing clients / New organic /
+     New paid) — kept for design reference only. Not applied anywhere in the
+     runtime UI: the chart stacks by branch, not channel (see
+     tokens.css --chart-color-*), so these are deliberately never read by
+     any component. See docs/design-audit.md. */
+  --channel-existing: #b29df8;
+  --channel-organic: #f4beb4;
+  --channel-paid: #a75e6e;
+  /* From the same lavender family as the channel tokens, not Tailwind blue-600 */
   --color-focus: #6f5aa8;
 }
 

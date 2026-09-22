@@ -36,10 +36,10 @@
   --avatar-color-6: #7a3f8f;
 
   /* Chart branch-stack palette — neutral tonal variants of the same lavender
-     family as --color-accent, deliberately NOT the design's literal
-     Existing-clients/New-organic/New-paid channel hexes: this chart stacks
-     by branch, not channel, and reusing those hexes would misapply
-     channel-specific meaning to branch data (see README). */
+     family as the channel tokens (global.css --channel-existing/-organic/-paid),
+     deliberately NOT those literal channel hexes: this chart stacks by
+     branch, not channel, and reusing them would misapply channel-specific
+     meaning to branch data (see docs/design-audit.md). */
   --chart-color-1: #8f7fd1;
   --chart-color-2: #c3b6f0;
   --chart-color-3: #5b4b91;
