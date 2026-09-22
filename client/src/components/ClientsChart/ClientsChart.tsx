@@ -62,8 +62,28 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
               domain={[0, 400]}
               ticks={[0, 100, 200, 300, 400]}
             />
-            <Tooltip />
-            <Legend />
+            {/*
+              Gridlines, Y-axis ticks, card radius and legend position already
+              matched the design as shipped (see README); this is the one piece
+              that had zero styling of its own — recharts' bare defaults — so
+              it's pulled onto the same token system as everything else instead
+              of standing out as unstyled.
+            */}
+            <Tooltip
+              contentStyle={{
+                background: 'var(--color-bg)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 'var(--font-size-table)',
+              }}
+              labelStyle={{ color: 'var(--color-text)', fontWeight: 600 }}
+              itemStyle={{ color: 'var(--color-text-muted)' }}
+            />
+            <Legend
+              iconType="square"
+              iconSize={10}
+              wrapperStyle={{ fontSize: 'var(--font-size-table)', color: 'var(--color-text-muted)' }}
+            />
             {series.map((s, index) => (
               <Bar
                 key={s.key}
