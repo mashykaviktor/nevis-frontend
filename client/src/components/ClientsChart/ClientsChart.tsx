@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { ClientNode } from '@nevis/shared';
 import { getChartSeries, toChartData } from '../../lib/tree';
+import { Surface } from '../ui/Surface';
 import styles from './ClientsChart.module.css';
 
 interface ClientsChartProps {
@@ -8,7 +9,9 @@ interface ClientsChartProps {
   months: string[];
 }
 
-const CHART_COLORS = ['#b29df8', '#f4beb4', '#a75e6e', '#8fbf9f', '#7fa8c9'];
+// Neutral tonal palette for the branch stack — not the design's literal
+// channel hexes (see tokens.css --chart-color-*).
+const CHART_COLORS = ['var(--chart-color-1)', 'var(--chart-color-2)', 'var(--chart-color-3)'];
 
 /**
  * The mockup rounds the whole stacked column (4px), not each segment — so
@@ -37,7 +40,7 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
   const seriesNames = series.map((s) => s.name).join(', ');
 
   return (
-    <div
+    <Surface
       className={styles.chartWrapper}
       role="img"
       aria-label={`Stacked bar chart of ${node.name} client counts by month, broken down by ${seriesNames}`}
@@ -59,8 +62,28 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
               domain={[0, 400]}
               ticks={[0, 100, 200, 300, 400]}
             />
-            <Tooltip />
-            <Legend />
+            {/*
+              Gridlines, Y-axis ticks, card radius and legend position already
+              matched the design as shipped (see README); this is the one piece
+              that had zero styling of its own — recharts' bare defaults — so
+              it's pulled onto the same token system as everything else instead
+              of standing out as unstyled.
+            */}
+            <Tooltip
+              contentStyle={{
+                background: 'var(--color-bg)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 'var(--font-size-table)',
+              }}
+              labelStyle={{ color: 'var(--color-text)', fontWeight: 600 }}
+              itemStyle={{ color: 'var(--color-text-muted)' }}
+            />
+            <Legend
+              iconType="square"
+              iconSize={10}
+              wrapperStyle={{ fontSize: 'var(--font-size-table)', color: 'var(--color-text-muted)' }}
+            />
             {series.map((s, index) => (
               <Bar
                 key={s.key}
@@ -74,6 +97,6 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Surface>
   );
 }

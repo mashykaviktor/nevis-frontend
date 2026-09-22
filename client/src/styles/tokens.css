@@ -1,0 +1,46 @@
+:root {
+  /* Spacing scale */
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+
+  /* Type scale — table body text is set to this in the fidelity pass
+     (Step 0 finding #9: visibly smaller than the page's 16px default). */
+  --font-size-table: 0.8125rem;
+
+  /* Radius — one scale instead of 0.5rem / 6px / 4px / 50% picked ad hoc per file */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 0.5rem;
+  --radius-full: 50%;
+
+  /* Focus ring — one definition instead of `outline: 2px solid var(--color-focus)`
+     duplicated across ClientsTable, ExpandToggle and StatusView */
+  --focus-ring: 2px solid var(--color-focus);
+
+  /* Surface — shared card treatment for the chart and table containers */
+  --surface-bg: var(--color-bg);
+  --surface-border-color: var(--color-border);
+  --surface-radius: var(--radius-lg);
+
+  /* Zebra-striped table rows — wired up in the fidelity pass (Step 0 finding #8) */
+  --row-stripe-bg: var(--color-bg-subtle);
+
+  /* Avatar palette, moved out of RowName.tsx's AVATAR_COLORS hex array (same values) */
+  --avatar-color-1: #6355c7;
+  --avatar-color-2: #a75e6e;
+  --avatar-color-3: #1f7a5c;
+  --avatar-color-4: #a15c1f;
+  --avatar-color-5: #2f6fa3;
+  --avatar-color-6: #7a3f8f;
+
+  /* Chart branch-stack palette — neutral tonal variants of the same lavender
+     family as the design. These are deliberately NOT the design's
+     acquisition-channel colors: this chart stacks by branch, not channel,
+     and reusing channel-specific colors would misrepresent the branch data
+     (see docs/design-audit.md). */
+  --chart-color-1: #8f7fd1;
+  --chart-color-2: #c3b6f0;
+  --chart-color-3: #5b4b91;
+}

@@ -1,20 +1,26 @@
 .nameCell {
   height: 3.5rem;
   text-align: left;
+  font-size: var(--font-size-table);
   font-weight: 400;
-  background: var(--color-bg);
+  /* Falls back to the plain surface color; overridden to the current row's
+     zebra-stripe/hover color via --row-bg, set on the <tr> in
+     ClientsTable.module.css, so the sticky column stays in sync with the
+     rest of the row instead of showing a flat white seam. */
+  background: var(--row-bg, var(--color-bg));
   position: sticky;
   left: 0;
   z-index: 1;
   border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
   padding: 0;
 }
 
 .nameCellInner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   white-space: nowrap;
 }
 
@@ -28,7 +34,8 @@
 .valueCell {
   height: 3.5rem;
   text-align: right;
-  padding: 0.5rem 0.75rem;
+  font-size: var(--font-size-table);
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

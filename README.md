@@ -4,15 +4,121 @@ A dashboard over a company's client-book data: a stacked bar chart of clients ov
 expandable detail table that drills from the whole company down to a branch, an adviser, or an
 acquisition channel. Built for the Nevis frontend take-home.
 
+## Response to review feedback
+
+The first submission got four review points. This is a remediation pass on top of it (the tree
+logic, component boundaries, data-discrepancy handling, and accessibility work from the original
+submission are unchanged — they were the strongest parts and didn't need rework).
+
+1. **Design fidelity.** A design audit against the supplied Nevis design screenshots found
+   concrete visual gaps — table type scale, zebra-striped rows, row hover state, sticky-column
+   edge treatment — and fixed them. It also re-examined three things that looked like gaps and
+   confirmed them as deliberate, data-driven deviations (chart stacking, chevron behavior, avatar
+   fallback). See [_Design fidelity_](#design-fidelity) below and the full evidence in
+   [`docs/design-audit.md`](docs/design-audit.md).
+2. **"No UI kit."** Added a shared token layer (`client/src/styles/tokens.css`: spacing, radius,
+   type, focus-ring, surface, and color tokens) and three primitives — `Button`, `Avatar`,
+   `Surface` — under `client/src/components/ui/`, consolidating values that were previously
+   duplicated across files or hardcoded as hex arrays inside `.tsx` components. See
+   [_UI kit_](#ui-kit) below.
+3. **No React Compiler setup.** Added `babel-plugin-react-compiler@1.0.0` to the existing
+   `@vitejs/plugin-react@4.7.0` Babel pipeline, deliberately **not** upgrading to `plugin-react@6`,
+   which requires Vite 8 + Node ≥20.19 and would break this project's pinned Vite 6 / Node 18.18
+   baseline (see [_Tooling versions_](#tooling-versions)). Verified the transform actually runs —
+   not just that the plugin is present — by grepping the production build output: `ErrorView`, a
+   component with zero manual memoization in its source, compiles to
+   `const t = rr.c(7); ... t[0] !== n ? (...) : ...`, the compiler's memo-cache guard pattern.
+4. **Use TanStack Query instead of the custom data-fetching hooks.** `useCompanyData` is now a
+   thin `useQuery` wrapper; `api/client.ts` (the domain boundary, already accepting an
+   `AbortSignal`) is unchanged. `retry: false` plus a manual `refetch()` wired to `ErrorView`'s
+   retry button preserves the old hook's exact behavior — one attempt on mount, no silent
+   background retries, explicit user-triggered retry — rather than adopting Query's default
+   retry-with-backoff, which would have changed the error UX. `staleTime: Infinity` and
+   `refetchOnWindowFocus: false` are set explicitly rather than left on Query's defaults (which
+   would silently refetch on every tab focus) since this dataset is effectively static within a
+   session. See [_Data fetching_](#data-fetching) below.
+
+## Design fidelity
+
+A design audit was run against three design screenshots supplied for this remediation pass (the
+live dashboard mockup, and two component-spec pages). It's not committed to this repository — see
+[`docs/design-audit.md`](docs/design-audit.md) for why, and for the full evidence behind every
+finding below.
+
+**Confirmed and fixed**: the table's type scale, zebra-striped rows, row hover state, and the
+sticky name column's edge treatment were genuine gaps between the implementation and the design.
+The audit also found the client had zero media queries anywhere; a single breakpoint now steps
+the page's own padding down below 640px. All are fixed.
+
+**Re-examined and kept as deliberate deviations** — each one re-checked against the design and
+found to be evidence-backed, not a shortcut:
+
+- **Chart** stacks by branch, not by acquisition channel like the design — the data doesn't
+  support a channel breakdown above the individual-employee level, so stacking by channel at the
+  Company level would mean fabricating data. The chart stacks one level below whatever node it's
+  showing instead, restyled to match the design's visual language without borrowing its
+  channel-specific palette.
+- **Chevron** is only rendered where a row actually has children, unlike the design where every
+  row gets one — the design's own component-spec screenshot shows the same childless-row-chevron
+  inconsistency, so this isn't a one-off oversight being second-guessed.
+- **Avatar** is a deterministic initials-on-color badge, not a photo — the API has no photo field
+  for any node, and the design's photos aren't licensed for redistribution as static assets.
+
+The audit also confirmed the chart's **X-axis month labels are horizontal**, matching the code —
+an earlier draft of this README incorrectly claimed they were rotated; that claim has been
+corrected.
+
+The audit additionally surfaced four internal inconsistencies in the served JSON (verbatim from
+the brief) that bear on data-driven design decisions above. The app never derives a parent's value
+from its children, so none are silently "corrected" — they're documented in
+[`docs/design-audit.md`](docs/design-audit.md) instead.
+
+## UI kit
+
+`client/src/styles/tokens.css` (imported by `global.css`) defines the token layer: a spacing
+scale, a type-scale value for table text, a radius scale, a single focus-ring definition (was
+duplicated across three files), surface tokens (background/border/radius shared by the chart and
+table cards), a zebra-stripe background token, and three separate color palettes that used to be
+either unlabeled or living as hex arrays inside `.tsx` components:
+
+- The design's acquisition-channel colors (`Existing clients`, `New organic`, `New paid`) are
+  documented as reference values in `docs/design-audit.md`, but are intentionally not runtime
+  tokens because the Company-level chart uses real Branch 1/2/3 data rather than fabricated
+  acquisition-channel values.
+- `--chart-color-1..3` — the neutral palette the branch chart actually renders with.
+- `--avatar-color-1..6` — the employee-avatar palette, extracted unchanged from `RowName.tsx`'s
+  hex array.
+
+`--color-danger` was deleted as genuinely dead code (never referenced); `--color-focus` was
+changed from Tailwind blue-600, which didn't belong to this palette, to a value from the same
+lavender family as the channel tokens.
+
+Three primitives sit on top of the tokens, under `client/src/components/ui/`:
+
+- **`Button`** — covers both button chromes the app needs (StatusView's bordered text retry
+  button, `ExpandToggle`'s icon-only chevron button) via a `variant` prop. No separate
+  `IconButton`.
+- **`Avatar`** — extracted from `RowName`'s employee initials circle, unchanged visually.
+- **`Surface`** — unifies the chart wrapper and table scroll region, which previously had
+  inconsistent card treatment (chart: radius + padding, no border; table: radius, no padding, a
+  stray `border-top` with nothing on the other three sides). Both now get a full 1px border.
+
+Deliberately **not** built: `Typography`, `StatusMessage`, a separate `IconButton` — each would
+exist only to demonstrate the pattern, not because the app has a second consumer for it.
+
 ## Stack
 
-- **Client**: React 19 + TypeScript, Vite, [Recharts](https://recharts.org/) for the chart, CSS
-  Modules for styling, [Vitest](https://vitest.dev/) + React Testing Library for tests.
+- **Client**: React 19 + TypeScript, Vite, [TanStack Query](https://tanstack.com/query) for data
+  fetching, the [React Compiler](https://react.dev/learn/react-compiler) (build-time transform via
+  `babel-plugin-react-compiler`), [Recharts](https://recharts.org/) for the chart, CSS Modules
+  with a small token layer for styling, [Vitest](https://vitest.dev/) + React Testing Library for
+  tests.
 - **Server**: Node.js + Express 5 + TypeScript, serving one read-only REST endpoint.
 - **Shared**: a small TypeScript-only workspace with the data types both sides import, so the API
   contract can't drift between client and server.
 - **Tooling**: npm workspaces (monorepo), ESLint 9 (flat config) with `typescript-eslint`,
-  `eslint-plugin-react-hooks`, and `eslint-plugin-jsx-a11y`.
+  `eslint-plugin-react-hooks` (whose `recommended` config already runs the React Compiler's
+  static-analysis rules), and `eslint-plugin-jsx-a11y`.
 
 ## Getting started
 
@@ -55,9 +161,12 @@ GET http://localhost:4000/api/company?simulateError=1   # → 500, to see the er
 ```
 client/           React + TS app (Vite)
   src/api/         fetch wrapper
-  src/hooks/       useCompanyData (fetch/loading/error/retry), useExpandedRows (expand state)
+  src/hooks/       useCompanyData (TanStack Query wrapper), useExpandedRows (expand state)
   src/lib/tree.ts  pure functions over the data tree — the core logic, fully unit-tested
-  src/components/  Dashboard, ClientsChart, ClientsTable (+ ClientRow/RowName/ExpandToggle), StatusView
+  src/styles/      global.css, tokens.css (the token layer)
+  src/components/  Dashboard, ClientsChart, ClientsTable (+ ClientRow/RowName/ExpandToggle),
+                   StatusView, ui/ (Button, Avatar, Surface)
+  src/test/        fixtures, RTL setup, renderWithQuery (fresh QueryClient per test)
 server/           Express + TS API
   src/data/        the brief's payload, verbatim, plus the month labels
   src/routes/      GET /api/company
@@ -80,11 +189,19 @@ tested functions:
 (`useCompanyData`), and composes `ClientsChart` and `ClientsTable` as dumb, controlled children.
 The table itself is further split into `ClientRow` / `RowName` / `ExpandToggle`, mirroring the
 component/variant breakdown in the provided design file, rather than one large row-rendering
-function.
+function. `ExpandToggle` and `RowName`'s avatar, along with `StatusView`'s retry button and both
+card containers, are built on the `Button` / `Avatar` / `Surface` primitives in
+`components/ui/` (see [_UI kit_](#ui-kit)).
 
 This split means: the tree logic is tested without React at all, the table is tested without a
 running chart or API, and `RowName`'s per-level rendering (company / branch / adviser-with-avatar
 / channel) is a single, small, swappable piece if the visual design of a given level changes later.
+
+The React Compiler now handles render memoization automatically (verified — see
+[_Response to review feedback_](#response-to-review-feedback), point 3), so `Dashboard` no longer
+wraps its `flattenVisibleRows` call in a manual `useMemo`. `useExpandedRows`'s `useCallback` stays,
+since it's part of that hook's public contract (a stable `toggle` reference) rather than a pure
+render optimization the compiler subsumes.
 
 ## Accessibility
 
@@ -106,6 +223,9 @@ running chart or API, and `RowName`'s per-level rendering (company / branch / ad
   from _all_ nested text content by default, including a nested button's visually-hidden label —
   so the row header's name was initially announcing the toggle's whole label plus the row name.
   Fixed with an explicit `aria-label` on the `<th>`.
+- Re-verified after the UI-kit refactor (`Button`/`Surface` extraction): `ClientsTable.test.tsx`'s
+  exact accessible-name assertions (e.g. `'Expand Branch 1, level 2, 2 employees'`) pass
+  unchanged, confirming the refactor didn't touch any accessible name.
 
 ## Testing
 
@@ -121,41 +241,24 @@ running chart or API, and `RowName`'s per-level rendering (company / branch / ad
   the same-fallback behavior for a leaf node, on the actual rendered chart (Recharts'
   `ResponsiveContainer` is mocked, since jsdom can't measure real layout and it would otherwise
   render nothing).
-- `client/src/components/Dashboard/Dashboard.test.tsx` — an integration test (mocked `fetch`)
-  covering a real bug an ultra code review caught: the `aria-live` expand announcement must count
-  every row revealed, not just the toggled node's direct children, since a descendant can already
-  be expanded from before and resume that state (see _Assumptions_, data model).
+- `client/src/components/Dashboard/Dashboard.test.tsx` — an integration test (mocked `fetch`,
+  rendered through `renderWithQuery`, which builds a fresh `QueryClient` per test so the cache
+  can't leak between them) covering a real bug an ultra code review caught: the `aria-live` expand
+  announcement must count every row revealed, not just the toggled node's direct children, since a
+  descendant can already be expanded from before and resume that state (see _Assumptions_, data
+  model). Also covers the error→retry→success path under TanStack Query with `retry: false`.
+- `client/src/components/ui/Button.test.tsx` — the one primitive with real behavior to test:
+  click handling, disabled state, default `type="button"`, and keyboard focusability. No
+  snapshot tests, and no assertions on class names.
 - `server/src/routes/company.test.ts` — a smoke test on the one real endpoint (status, shape,
   `?simulateError=1`). Deliberately minimal: it's a static payload, so the time was better spent
   on the client-side logic and accessibility above.
 
 ## Assumptions & decisions
 
-The brief left several things open on purpose. Here's what was assumed, and why.
-
-### The dataset has internal inconsistencies — found by hand, not assumed away
-
-The brief invites calling out "anything you think we got wrong." Cross-checking the JSON payload
-against itself and against the mockup screenshots turned up four real discrepancies:
-
-1. **Company vs. its branches, May 2024**: Company = `301`, but Branch 1 + Branch 2 + Branch 3 =
-   `156 + 87 + 36 = 279` — off by 22.
-2. **Branch 1 vs. its employees, Aug 2024**: Branch 1 = `214`, but its five employees sum to
-   `216`. The mockup screenshot shows Robert Chen's Aug value as `56`, not the JSON's `58` — using
-   `56` reconciles the sum exactly to `214`.
-3. **Anna Blackwood's channels vs. her own total**: her three channels don't sum to her own
-   `values` in 5 of 12 months (May–Sep). The mockup's "New paid" row differs from the JSON's and
-   reconciles all 12 months — this looks like an off-by-one shift introduced when the JSON was
-   hand-transcribed from the design.
-4. **Branch 1, Jul 2024, shown twice in the mockup**: `201` in one table view, `291` in another
-   (same screenshot). The employee sum for that month is `201`.
-
-**Resolution**: the app never derives a parent's value from its children (or vice versa) — every
-node always renders its own `values` from the API, independently at every level. This sidesteps
-the inconsistency rather than silently "correcting" numbers a reviewer might not expect. All four
-are listed here rather than fixed in the code, since the served JSON is an exact copy of the
-brief's payload (see below) and "fixing" it would mean deviating from the given data on my own
-judgment of what the _real_ number should be.
+The brief left several things open on purpose. Here's what was assumed, and why. (The design and
+data-discrepancy deviations are covered above, in [_Design fidelity_](#design-fidelity), since
+they're most useful read alongside the feedback they respond to.)
 
 ### Data model & API
 
@@ -168,41 +271,16 @@ judgment of what the _real_ number should be.
   (Company → Branch → Employee → Channel). `getChildren` resolves whichever key is present;
   `RowName`'s per-level rendering is driven by depth, not a separate "kind" field, since depth
   deterministically maps to a level in this fixed schema.
-- **Only Anna Blackwood has `channels`**; Branch 2 and Branch 3 have no `employees`. The UI
-  handles this by only rendering an expand control where `getChildren` actually returns something
-  (`hasChildren`), rather than everywhere the mockup shows a chevron — the mockup shows a chevron
-  on every row regardless of whether it has children, which would leave non-functional controls
-  in the real data. This is a deliberate, documented deviation from the visual mockup.
+- **Only Anna Blackwood has `channels`**; Branch 2 and Branch 3 have no `employees`. The UI only
+  renders an expand control where `getChildren` actually returns something — see
+  [_Design fidelity_](#design-fidelity) for why this deviates from the mockup's chevron-on-every-row.
 
-### The stacked bar chart
+### Data fetching
 
-The mockup shows the Company-level chart stacked by acquisition channel (Existing clients / New
-organic / New paid) with a legend. The data doesn't support that: channel-level breakdown only
-exists for one adviser, not for Company or any Branch. Two options were on the table: fabricate a
-channel split at levels that don't have one, or stack by something the data actually has.
-
-**Decision**: the chart stacks **one level below** whatever node it's showing — so the
-Company-level chart is a real 3-segment stack of Branch 1 / Branch 2 / Branch 3, and the same
-component would show a channel stack if pointed at Anna Blackwood, or a single "Total" bar for
-any leaf. This satisfies "stacked bar chart" honestly with the data available, rather than
-matching the mockup's specific colors by inventing numbers.
-
-The chart itself is **static at the Company level** and doesn't respond to table row
-selection/expansion — this matches the mockup's literal layout (one fixed chart above an
-independently-expandable table). Syncing the chart to a selected table row is listed under
-_What I'd do next_.
-
-### Avatars
-
-The mockup's employee rows (adviser level) show a real photo per person in a 20px circle. The
-brief's payload — served verbatim (above) — has no photo/image field for any node, and the
-mockup's photos are third-party imagery embedded in the design file with no license to redistribute
-as static assets, so neither "add a photo field" nor "export the mockup's images" was on the table.
-
-**Decision**: render a deterministic initials-on-color avatar instead, sized and positioned to
-match the mockup's 20px circle. The color is derived from the employee's `id` (a small fixed
-palette, hashed), so each person still reads as visually distinct across renders — the way the
-mockup's different photos do — without depending on data the API doesn't provide.
+`useCompanyData` (`client/src/hooks/useCompanyData.ts`) wraps a single `useQuery({ queryKey:
+['company'], ... })` call. The retry/staleness/loading decisions are covered in
+[_Response to review feedback_](#response-to-review-feedback), point 4 — this section is just the
+pointer, so the reasoning isn't duplicated in two places.
 
 ### Tooling versions
 
@@ -220,6 +298,11 @@ satisfy, so versions were deliberately pinned rather than left on `latest`:
 - **ESLint** is pinned to `9.x`; `10.x` again raises the Node floor. A transitive dependency of
   `typescript-eslint` (`eslint-visitor-keys`) independently needed pinning back to `4.x` for the
   same reason.
+- **`@vitejs/plugin-react` is pinned to `4.7.0`, not `6.x`.** `6.x` requires Vite 8 + Node
+  ≥20.19, the same problem as above. `babel-plugin-react-compiler` (added for the React Compiler
+  build transform — see [_Response to review feedback_](#response-to-review-feedback), point 3)
+  works fine on `plugin-react@4.7.0`'s existing Babel pipeline, so there was no need to touch the
+  Vite/Node floor to get the compiler running.
 
 All of the above are enforced via root `package.json` `overrides` so a single version resolves
 everywhere in the workspace tree, not just at the top level.
@@ -235,7 +318,10 @@ anyway, so the simpler, zero-setup option won.
 ### Styling
 
 CSS Modules, no framework — full control over focus states, sticky columns, and the 375px
-behavior below, without an extra dependency to reason about or override.
+behavior below, without an extra dependency to reason about or override. A small token layer
+(`tokens.css`) and three primitives sit on top — see [_UI kit_](#ui-kit) — rather than adopting a
+component library, since the app's actual surface area (one table, one chart, a handful of
+status views) doesn't need one.
 
 ### 375px behavior
 
@@ -244,7 +330,12 @@ Full responsiveness wasn't required, but nothing should overflow the page at 375
 self-contained horizontally-scrollable regions (`overflow-x: auto` with a sensible `min-width`
 on their content) rather than letting content force the page itself to overflow. The table's
 name column and header row are `position: sticky` so row identity stays visible while scrolling
-through months; the chart's month labels are rotated to reduce collision at narrow widths.
+through months; **the chart's month labels stay horizontal** — the design confirms 12 horizontal
+labels fit without collision (see [_Design fidelity_](#design-fidelity)), so no rotation was
+added. One additional gap the audit found: the client had zero media queries anywhere. A single
+breakpoint now steps the page's own padding down below 640px — the chart and table already
+contained their own horizontal scroll regardless of viewport width, so this only affects the
+outer page padding, not that contained-scroll behavior.
 
 ## What I'd do next
 
@@ -261,9 +352,16 @@ through months; the chart's month labels are rotated to reduce collision at narr
   table to fewer visible months by default on narrow viewports.
 - Verify the four data discrepancies above with whoever owns the source data, and decide whether
   the API should eventually reconcile them or keep serving the raw values as-is.
+- Code-split the client bundle (Vite's build already warns it's over the default 500kB chunk
+  size guideline, mostly Recharts) if this ever needed a real production deploy.
 
 ## AI assistance
 
-I used Claude Code throughout the implementation as an engineering assistant — for planning, reviewing the brief and mockups, implementation, and helping surface data discrepancies that I then verified against the supplied payload and mockups.
+I used Claude Code throughout the implementation — including this remediation pass — as an
+engineering assistant: for planning, reviewing the brief and design screenshots, implementation,
+and helping surface data discrepancies that I then verified against the supplied payload and
+designs.
 
-I remained responsible for the architectural and product decisions, including data handling, chart stacking behaviour, accessibility, and tooling choices. I reviewed and validated the generated changes incrementally, with tests and typechecks kept green throughout.
+I remained responsible for the architectural and product decisions, including data handling,
+chart stacking behaviour, accessibility, and tooling choices. I reviewed and validated the
+generated changes incrementally, with tests and typechecks kept green throughout.

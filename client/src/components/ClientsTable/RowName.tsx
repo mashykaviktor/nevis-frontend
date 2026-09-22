@@ -1,6 +1,6 @@
-import type { CSSProperties } from 'react';
 import type { ClientNode } from '@nevis/shared';
 import type { NodeKind } from '../../lib/tree';
+import { Avatar } from '../ui/Avatar';
 import styles from './RowName.module.css';
 
 interface RowNameProps {
@@ -19,15 +19,7 @@ interface RowNameProps {
 export function RowName({ node, kind }: RowNameProps) {
   return (
     <span className={styles.name}>
-      {kind === 'employee' && (
-        <span
-          className={styles.avatar}
-          style={{ '--avatar-bg': avatarColor(node.id) } as CSSProperties}
-          aria-hidden="true"
-        >
-          {getInitials(node.name)}
-        </span>
-      )}
+      {kind === 'employee' && <Avatar initials={getInitials(node.name)} color={avatarColor(node.id)} />}
       <span>{node.name}</span>
     </span>
   );
@@ -42,8 +34,15 @@ function getInitials(name: string): string {
     .join('');
 }
 
-/** A handful of saturated, white-text-legible hues — distinct from the pale chart palette. */
-const AVATAR_COLORS = ['#6355c7', '#a75e6e', '#1f7a5c', '#a15c1f', '#2f6fa3', '#7a3f8f'];
+/** Saturated, white-text-legible hues from tokens.css — distinct from the pale chart palette. */
+const AVATAR_COLOR_TOKENS = [
+  'var(--avatar-color-1)',
+  'var(--avatar-color-2)',
+  'var(--avatar-color-3)',
+  'var(--avatar-color-4)',
+  'var(--avatar-color-5)',
+  'var(--avatar-color-6)',
+];
 
 /** Deterministic per-person color so each avatar reads as distinct, like the mockup's photos. */
 function avatarColor(id: string): string {
@@ -52,5 +51,5 @@ function avatarColor(id: string): string {
     hash = (hash * 31 + id.charCodeAt(i)) | 0;
   }
   // Modulo against the array's own length always yields a valid index.
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] as string;
+  return AVATAR_COLOR_TOKENS[Math.abs(hash) % AVATAR_COLOR_TOKENS.length] as string;
 }
