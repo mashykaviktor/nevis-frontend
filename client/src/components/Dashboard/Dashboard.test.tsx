@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { sampleCompany, sampleMonths } from '../../test/fixtures';
+import { renderWithQuery } from '../../test/renderWithQuery';
 import { Dashboard } from './Dashboard';
 
 function mockFetchOnce() {
@@ -22,7 +23,7 @@ describe('Dashboard', () => {
   it('announces the true number of revealed rows on re-expand, including a descendant that resumed its own expanded state', async () => {
     mockFetchOnce();
     const user = userEvent.setup();
-    render(<Dashboard />);
+    renderWithQuery(<Dashboard />);
 
     await waitFor(() => expect(screen.getByText('Branch 1')).toBeInTheDocument());
 
@@ -41,7 +42,7 @@ describe('Dashboard', () => {
   it('announces that a row collapsed, without a row count', async () => {
     mockFetchOnce();
     const user = userEvent.setup();
-    render(<Dashboard />);
+    renderWithQuery(<Dashboard />);
 
     await waitFor(() => expect(screen.getByText('Branch 1')).toBeInTheDocument());
 
@@ -54,7 +55,7 @@ describe('Dashboard', () => {
   it('shows a loading indicator while the request is in flight', () => {
     vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})));
 
-    render(<Dashboard />);
+    renderWithQuery(<Dashboard />);
 
     expect(screen.getByRole('status')).toHaveTextContent(/loading/i);
   });
@@ -69,7 +70,7 @@ describe('Dashboard', () => {
       });
     vi.stubGlobal('fetch', fetchMock);
     const user = userEvent.setup();
-    render(<Dashboard />);
+    renderWithQuery(<Dashboard />);
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Simulated server error'));
 

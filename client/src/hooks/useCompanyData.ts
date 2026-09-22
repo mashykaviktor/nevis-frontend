@@ -1,46 +1,28 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { CompanyResponse } from '@nevis/shared';
+import { useQuery } from '@tanstack/react-query';
 import { fetchCompanyData } from '../api/client';
 
-type CompanyDataState =
-  | { status: 'loading' }
-  | { status: 'error'; error: Error }
-  | { status: 'success'; data: CompanyResponse };
-
 /**
- * Fetches the company client-book tree on mount, with a `retry()` escape
- * hatch for the error state. Requests are aborted on unmount/retry so a
- * stale response can never overwrite a newer one.
+ * Fetches the company client-book tree. `retry: false` plus the exposed
+ * `refetch` (aliased as `retry`) matches the old hook's exact behaviour: one
+ * attempt on mount, no silent background retry, and an explicit user-triggered
+ * retry from the error state's retry button.
  */
 export function useCompanyData() {
-  const [state, setState] = useState<CompanyDataState>({ status: 'loading' });
-  const [attempt, setAttempt] = useState(0);
+  const query = useQuery({
+    queryKey: ['company'],
+    queryFn: ({ signal }) => fetchCompanyData(signal),
+    retry: false,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    const controller = new AbortController();
-    // Resets a stale error/success state back to loading the moment `attempt`
-    // changes (retry), so the UI doesn't flash old data/error while the new
-    // request is in flight.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setState({ status: 'loading' });
+  if (query.isPending || query.isFetching) {
+    return { status: 'loading' as const };
+  }
 
-    fetchCompanyData(controller.signal)
-      .then((data) => {
-        if (controller.signal.aborted) return;
-        setState({ status: 'success', data });
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        setState({
-          status: 'error',
-          error: error instanceof Error ? error : new Error('Unknown error'),
-        });
-      });
+  if (query.isSuccess) {
+    return { status: 'success' as const, data: query.data };
+  }
 
-    return () => controller.abort();
-  }, [attempt]);
-
-  const retry = useCallback(() => setAttempt((a) => a + 1), []);
-
-  return { ...state, retry };
+  return { status: 'error' as const, error: query.error ?? new Error('Unknown error'), retry: query.refetch };
 }
