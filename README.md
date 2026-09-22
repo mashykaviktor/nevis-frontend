@@ -8,34 +8,20 @@ acquisition channel. Built for the Nevis frontend take-home.
 
 The first submission got four review points. This is a remediation pass on top of it (the tree
 logic, component boundaries, data-discrepancy handling, and accessibility work from the original
-submission are unchanged — they were the strongest parts and didn't need rework). Here's what
-changed for each point:
+submission are unchanged — they were the strongest parts and didn't need rework).
 
-1. **Differences between the implementation and the provided designs.** A design audit against
-   the three Figma screenshots supplied for this pass (`.claude/design/`) confirmed which
-   differences were real and which were already correct — see
-   [_Design fidelity_](#design-fidelity) below for the full breakdown with screenshot evidence.
-   The table's type scale, zebra-striped rows, row hover state, and the sticky name column's edge
-   treatment were genuine gaps and are now fixed. The chart's channel-vs-branch stacking, the
-   chevron-per-row behavior, and the initials-avatar fallback were re-examined against the design
-   and are **kept as deliberate, now better-evidenced deviations** — the design's own component
-   spec sheet shows the same `201`/`291` conflict and channel/chevron mismatches that motivated
-   them originally. One real overclaim was found and fixed: the README previously said the
-   chart's X-axis labels were rotated; the design shows them horizontal, and so does the code —
-   the claim was simply wrong and is corrected below.
-2. **"No UI kit."** Fair and measurable: the client had zero media queries, two `font-size`
-   declarations in the entire app, a focus ring and several spacing/radius values duplicated
-   across files, and two color palettes living as hex arrays inside `.tsx` components. Added
-   `client/src/styles/tokens.css` (spacing, radius, type, focus-ring, surface, and color tokens)
-   and three UI primitives — `Button`, `Avatar`, `Surface` — under `client/src/components/ui/`.
-   Deliberately not a full component library: three primitives that consolidate what already
-   existed, not new abstractions built to demonstrate a pattern. See
+1. **Design fidelity.** A design audit against the supplied Nevis design screenshots found
+   concrete visual gaps — table type scale, zebra-striped rows, row hover state, sticky-column
+   edge treatment — and fixed them. It also re-examined three things that looked like gaps and
+   confirmed them as deliberate, data-driven deviations (chart stacking, chevron behavior, avatar
+   fallback). See [_Design fidelity_](#design-fidelity) below and the full evidence in
+   [`docs/design-audit.md`](docs/design-audit.md).
+2. **"No UI kit."** Added a shared token layer (`client/src/styles/tokens.css`: spacing, radius,
+   type, focus-ring, surface, and color tokens) and three primitives — `Button`, `Avatar`,
+   `Surface` — under `client/src/components/ui/`, consolidating values that were previously
+   duplicated across files or hardcoded as hex arrays inside `.tsx` components. See
    [_UI kit_](#ui-kit) below.
-3. **No React Compiler setup.** `eslint-plugin-react-hooks@7.1.1`'s
-   `reactHooks.configs.recommended` was already running ~30 of the compiler's static-analysis
-   rules on every lint (`set-state-in-effect`, `purity`, `immutability`,
-   `preserve-manual-memoization`, …) — only the build-time transform was missing. Added
-   `babel-plugin-react-compiler@1.0.0` (stable, no longer beta) to the existing
+3. **No React Compiler setup.** Added `babel-plugin-react-compiler@1.0.0` to the existing
    `@vitejs/plugin-react@4.7.0` Babel pipeline, deliberately **not** upgrading to `plugin-react@6`,
    which requires Vite 8 + Node ≥20.19 and would break this project's pinned Vite 6 / Node 18.18
    baseline (see [_Tooling versions_](#tooling-versions)). Verified the transform actually runs —
@@ -50,99 +36,62 @@ changed for each point:
    retry-with-backoff, which would have changed the error UX. `staleTime: Infinity` and
    `refetchOnWindowFocus: false` are set explicitly rather than left on Query's defaults (which
    would silently refetch on every tab focus) since this dataset is effectively static within a
-   session. Loading is driven by `isPending || isFetching` so a manual retry-in-flight also shows
-   the loading state, matching the old hook's synchronous reset to `'loading'` at the top of its
-   effect. `hooks/useCompanyData.ts` stays a file — `Dashboard` still consumes a domain hook, not
-   a raw query key — and deleting it also deleted the suppressed
-   `// eslint-disable-next-line react-hooks/set-state-in-effect` it carried, which was a React
-   Compiler violation TanStack Query's declarative fetch doesn't need to suppress.
+   session. See [_Data fetching_](#data-fetching) below.
 
 ## Design fidelity
 
-### What the design audit confirmed
+A design audit was run against three design screenshots supplied for this remediation pass (the
+live dashboard mockup, and two component-spec pages). It's not committed to this repository — see
+[`docs/design-audit.md`](docs/design-audit.md) for why, and for the full evidence behind every
+finding below.
 
-Three Figma screenshots were used for this pass: the live dashboard mockup, and two component-spec
-pages (table levels 1–2, table level 3 + row variants). Cross-checking them against the code:
+**Confirmed and fixed**: the table's type scale, zebra-striped rows, row hover state, and the
+sticky name column's edge treatment were genuine gaps between the implementation and the design.
+The audit also found the client had zero media queries anywhere; a single breakpoint now steps
+the page's own padding down below 640px. All are fixed.
 
-| Finding | Verdict |
-| --- | --- |
-| Company-level chart stacked by **acquisition channel** in the design, not by branch | The data doesn't support a channel breakdown above the individual-employee level — kept branch-level stacking, restyled to match the design's visual language (see below) |
-| The design's exact 3 channel colors are the same hexes already sitting unused in `global.css` (`--color-accent`/`-2`/`-3`) | Not repurposed for the chart — would mislabel branch data with channel-specific meaning. The chart now uses a separate neutral 3-color palette (`--chart-color-1..3`) from the same lavender family |
-| X-axis month labels are horizontal in the design, not rotated | The README previously claimed rotation; that was wrong, and is corrected here — no `angle` prop was ever added |
-| Every row gets a chevron in the design regardless of whether it has children | Confirms this codebase's documented deviation (below) — the design shows the same mismatch |
-| Employee rows show real circular photos in the design, not initials | Confirms this codebase's documented deviation (below) |
-| The design's own component-spec screenshot shows the Jul-2024 `201`/`291` conflict directly — collapsed-row value vs. expanded-row value, same screenshot | Strengthens the data-discrepancy finding below with visual evidence, not just arithmetic |
-| Anna Blackwood's "New paid" channel values in the design read one month later than the served JSON's | Strengthens another data-discrepancy finding below |
-| Table rows show a probable zebra stripe in the component spec | Applied a subtle alternating background — safe even if the source was actually demonstrating a hover state, since a striped table degrades gracefully either way |
-| Table body text is visibly smaller than the page's 16px default in the design | Confirmed and fixed — table text is now ~13px via a type-scale token |
-| Chart Y-axis ticks, card corner radius, dashed gridlines, legend-below-chart position, Company-row-expanded-by-default table state | Already matched the implementation — no change needed |
+**Re-examined and kept as deliberate deviations** — each one re-checked against the design and
+found to be evidence-backed, not a shortcut:
 
-### Deviations kept, with reasoning
+- **Chart** stacks by branch, not by acquisition channel like the design — the data doesn't
+  support a channel breakdown above the individual-employee level, so stacking by channel at the
+  Company level would mean fabricating data. The chart stacks one level below whatever node it's
+  showing instead, restyled to match the design's visual language without borrowing its
+  channel-specific palette.
+- **Chevron** is only rendered where a row actually has children, unlike the design where every
+  row gets one — the design's own component-spec screenshot shows the same childless-row-chevron
+  inconsistency, so this isn't a one-off oversight being second-guessed.
+- **Avatar** is a deterministic initials-on-color badge, not a photo — the API has no photo field
+  for any node, and the design's photos aren't licensed for redistribution as static assets.
 
-**The stacked bar chart stacks by branch, not by acquisition channel.** The design's
-Company-level chart is a channel stack (Existing clients / New organic / New paid) with a legend
-to match. The data doesn't support that breakdown above the individual-employee level — only one
-adviser (Anna Blackwood) has channel data at all. Two options were on the table: fabricate a
-channel split at levels that don't have one, or stack by something the data actually has.
+The audit also confirmed the chart's **X-axis month labels are horizontal**, matching the code —
+an earlier draft of this README incorrectly claimed they were rotated; that claim has been
+corrected.
 
-The chart stacks **one level below** whatever node it's showing — a real 3-segment stack of
-Branch 1 / Branch 2 / Branch 3 at the Company level, a channel stack if pointed at Anna Blackwood,
-or a single "Total" bar for any leaf. It's restyled to match the design's non-data visual language
-— card treatment, gridlines, legend position and swatch style, tooltip style, bar corner radius —
-but deliberately **not** the design's literal channel-hex palette, since applying
-`Existing-clients`/`New-organic`/`New-paid` colors to branch segments would misrepresent what the
-segments actually are.
-
-**Every row gets an expand chevron in the design, even rows with no children** (e.g. every
-employee, though only Anna Blackwood has channels; Branch 2 and Branch 3 have no employees). The
-UI only renders a toggle where `getChildren` actually returns something — a chevron with nothing
-behind it is a non-functional control, and the design's own component-spec screenshot shows this
-same mismatch (chevrons on childless rows), so it isn't a one-off design oversight being
-second-guessed here.
-
-**Employee rows show a deterministic initials-on-color avatar, not a photo.** The design's
-adviser-level rows show a real photo per person in a 20px circle. The served payload (verbatim
-from the brief) has no photo field for any node, and the design file's photos are third-party
-imagery with no license to redistribute as static assets. The avatar color is derived from the
-employee's `id` (hashed against a small fixed palette — now `--avatar-color-1..6` in
-`tokens.css`), so each person still reads as visually distinct, without depending on data the API
-doesn't provide.
-
-### The dataset has internal inconsistencies — found by hand, not assumed away
-
-The brief invites calling out "anything you think we got wrong." Cross-checking the JSON payload
-against itself and against the design screenshots turned up four real discrepancies:
-
-1. **Company vs. its branches, May 2024**: Company = `301`, but Branch 1 + Branch 2 + Branch 3 =
-   `156 + 87 + 36 = 279` — off by 22.
-2. **Branch 1 vs. its employees, Aug 2024**: Branch 1 = `214`, but its five employees sum to
-   `216`. The design shows Robert Chen's Aug value as `56`, not the JSON's `58` — using `56`
-   reconciles the sum exactly to `214`.
-3. **Anna Blackwood's channels vs. her own total**: her three channels don't sum to her own
-   `values` in 5 of 12 months (May–Sep). The design's "New paid" row differs from the JSON's and
-   reconciles all 12 months — this looks like an off-by-one shift introduced when the JSON was
-   hand-transcribed from the design.
-4. **Branch 1, Jul 2024, shown twice in the design**: `201` in one table view, `291` in another —
-   directly visible in the same component-spec screenshot. The employee sum for that month is
-   `201`.
-
-**Resolution**: the app never derives a parent's value from its children (or vice versa) — every
-node always renders its own `values` from the API, independently at every level. This sidesteps
-the inconsistency rather than silently "correcting" numbers a reviewer might not expect. All four
-are listed here rather than fixed in the code, since the served JSON is an exact copy of the
-brief's payload (see [_Data model & API_](#data-model--api)) and "fixing" it would mean deviating
-from the given data on my own judgment of what the _real_ number should be.
+The audit additionally surfaced four internal inconsistencies in the served JSON (verbatim from
+the brief) that bear on data-driven design decisions above. The app never derives a parent's value
+from its children, so none are silently "corrected" — they're documented in
+[`docs/design-audit.md`](docs/design-audit.md) instead.
 
 ## UI kit
 
 `client/src/styles/tokens.css` (imported by `global.css`) defines the token layer: a spacing
 scale, a type-scale value for table text, a radius scale, a single focus-ring definition (was
 duplicated across three files), surface tokens (background/border/radius shared by the chart and
-table cards), a zebra-stripe background token, and two color palettes moved out of `.tsx` hex
-arrays — the avatar palette (unchanged values) and a new neutral chart palette (see
-[_Design fidelity_](#design-fidelity)). `--color-danger` was deleted as genuinely dead code (never
-referenced); `--color-focus` was changed from Tailwind blue-600, which didn't belong to this
-palette, to a value from the same lavender family as `--color-accent`.
+table cards), a zebra-stripe background token, and three separate color palettes that used to be
+either unlabeled or living as hex arrays inside `.tsx` components:
+
+- `--channel-existing` / `--channel-organic` / `--channel-paid` — the design's acquisition-channel
+  colors, kept for reference but not applied anywhere in the runtime UI (see
+  [_Design fidelity_](#design-fidelity)). Previously named `--color-accent`/`-2`/`-3`, which gave
+  no indication of what they represented or that the chart deliberately doesn't use them.
+- `--chart-color-1..3` — the neutral palette the branch chart actually renders with.
+- `--avatar-color-1..6` — the employee-avatar palette, extracted unchanged from `RowName.tsx`'s
+  hex array.
+
+`--color-danger` was deleted as genuinely dead code (never referenced); `--color-focus` was
+changed from Tailwind blue-600, which didn't belong to this palette, to a value from the same
+lavender family as the channel tokens.
 
 Three primitives sit on top of the tokens, under `client/src/components/ui/`:
 
@@ -299,8 +248,8 @@ render optimization the compiler subsumes.
   descendant can already be expanded from before and resume that state (see _Assumptions_, data
   model). Also covers the error→retry→success path under TanStack Query with `retry: false`.
 - `client/src/components/ui/Button.test.tsx` — the one primitive with real behavior to test:
-  click handling, disabled state, default `type="button"`, keyboard focusability, and that
-  `variant` actually changes the rendered class. No snapshot tests.
+  click handling, disabled state, default `type="button"`, and keyboard focusability. No
+  snapshot tests, and no assertions on class names.
 - `server/src/routes/company.test.ts` — a smoke test on the one real endpoint (status, shape,
   `?simulateError=1`). Deliberately minimal: it's a static payload, so the time was better spent
   on the client-side logic and accessibility above.
