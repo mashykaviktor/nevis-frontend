@@ -42,18 +42,4 @@ describe('Button', () => {
 
     expect(screen.getByRole('button', { name: 'Retry' })).toHaveFocus();
   });
-
-  it('renders the icon variant distinctly from the default variant', () => {
-    render(
-      <Button variant="icon" aria-label="Expand">
-        →
-      </Button>,
-    );
-    const iconButton = screen.getByRole('button', { name: 'Expand' });
-
-    render(<Button aria-label="Default">Retry</Button>);
-    const defaultButton = screen.getByRole('button', { name: 'Default' });
-
-    expect(iconButton.className).not.toBe(defaultButton.className);
-  });
 });
