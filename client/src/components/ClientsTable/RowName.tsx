@@ -1,6 +1,6 @@
-import type { CSSProperties } from 'react';
 import type { ClientNode } from '@nevis/shared';
 import type { NodeKind } from '../../lib/tree';
+import { Avatar } from '../ui/Avatar';
 import styles from './RowName.module.css';
 
 interface RowNameProps {
@@ -19,15 +19,7 @@ interface RowNameProps {
 export function RowName({ node, kind }: RowNameProps) {
   return (
     <span className={styles.name}>
-      {kind === 'employee' && (
-        <span
-          className={styles.avatar}
-          style={{ '--avatar-bg': avatarColor(node.id) } as CSSProperties}
-          aria-hidden="true"
-        >
-          {getInitials(node.name)}
-        </span>
-      )}
+      {kind === 'employee' && <Avatar initials={getInitials(node.name)} color={avatarColor(node.id)} />}
       <span>{node.name}</span>
     </span>
   );

@@ -1,3 +1,4 @@
+import { Button } from '../ui/Button';
 import styles from './ExpandToggle.module.css';
 
 interface ExpandToggleProps {
@@ -14,7 +15,7 @@ interface ExpandToggleProps {
  */
 export function ExpandToggle({ expanded, label, onToggle }: ExpandToggleProps) {
   return (
-    <button type="button" className={styles.toggle} aria-expanded={expanded} onClick={onToggle}>
+    <Button variant="icon" aria-expanded={expanded} onClick={onToggle}>
       <svg
         className={styles.chevron}
         data-expanded={expanded || undefined}
@@ -33,6 +34,6 @@ export function ExpandToggle({ expanded, label, onToggle }: ExpandToggleProps) {
         />
       </svg>
       <span className="visually-hidden">{label}</span>
-    </button>
+    </Button>
   );
 }

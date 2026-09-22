@@ -1,7 +1,5 @@
 .chartWrapper {
   overflow-x: auto;
-  background: var(--surface-bg);
-  border-radius: var(--surface-radius);
   padding: var(--space-4) var(--space-4) var(--space-2);
 }
 

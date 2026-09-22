@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { ClientNode } from '@nevis/shared';
 import { getChartSeries, toChartData } from '../../lib/tree';
+import { Surface } from '../ui/Surface';
 import styles from './ClientsChart.module.css';
 
 interface ClientsChartProps {
@@ -39,7 +40,7 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
   const seriesNames = series.map((s) => s.name).join(', ');
 
   return (
-    <div
+    <Surface
       className={styles.chartWrapper}
       role="img"
       aria-label={`Stacked bar chart of ${node.name} client counts by month, broken down by ${seriesNames}`}
@@ -76,6 +77,6 @@ export function ClientsChart({ node, months }: ClientsChartProps) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Surface>
   );
 }

@@ -1,0 +1,59 @@
+import { describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Button } from './Button';
+
+describe('Button', () => {
+  it('calls onClick when clicked', async () => {
+    const onClick = vi.fn();
+    const user = userEvent.setup();
+    render(<Button onClick={onClick}>Retry</Button>);
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onClick when disabled', async () => {
+    const onClick = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Button onClick={onClick} disabled>
+        Retry
+      </Button>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it('defaults to type="button" so it never submits an enclosing form', () => {
+    render(<Button>Retry</Button>);
+
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveAttribute('type', 'button');
+  });
+
+  it('is reachable by keyboard and focusable', async () => {
+    const user = userEvent.setup();
+    render(<Button>Retry</Button>);
+
+    await user.tab();
+
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveFocus();
+  });
+
+  it('renders the icon variant distinctly from the default variant', () => {
+    render(
+      <Button variant="icon" aria-label="Expand">
+        →
+      </Button>,
+    );
+    const iconButton = screen.getByRole('button', { name: 'Expand' });
+
+    render(<Button aria-label="Default">Retry</Button>);
+    const defaultButton = screen.getByRole('button', { name: 'Default' });
+
+    expect(iconButton.className).not.toBe(defaultButton.className);
+  });
+});

@@ -1,3 +1,4 @@
+import { Button } from '../ui/Button';
 import styles from './StatusView.module.css';
 
 interface ErrorViewProps {
@@ -9,9 +10,7 @@ export function ErrorView({ message, onRetry }: ErrorViewProps) {
   return (
     <div className={styles.status} role="alert">
       <p>{message}</p>
-      <button type="button" className={styles.retryButton} onClick={onRetry}>
-        Retry
-      </button>
+      <Button onClick={onRetry}>Retry</Button>
     </div>
   );
 }

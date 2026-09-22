@@ -1,8 +1,5 @@
 .scrollWrapper {
   overflow-x: auto;
-  background: var(--surface-bg);
-  border-top: 1px solid var(--surface-border-color);
-  border-radius: var(--surface-radius);
 }
 
 .scrollWrapper:focus-visible {
