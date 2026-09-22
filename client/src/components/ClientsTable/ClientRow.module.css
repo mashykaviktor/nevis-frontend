@@ -13,8 +13,8 @@
 .nameCellInner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   white-space: nowrap;
 }
 
@@ -28,7 +28,7 @@
 .valueCell {
   height: 3.5rem;
   text-align: right;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

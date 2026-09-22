@@ -1,14 +1,19 @@
+@import './tokens.css';
+
 :root {
   --color-bg: #ffffff;
   --color-bg-subtle: #f7f5ed;
   --color-border: #e2e2e0;
   --color-text: #141413;
   --color-text-muted: #6b6b6b;
+  /* Same hexes as the design's channel colors (Existing clients / New organic
+     / New paid) — kept defined but not repurposed for the chart, which
+     stacks by branch, not channel (see tokens.css --chart-color-*). */
   --color-accent: #b29df8;
   --color-accent-2: #f4beb4;
   --color-accent-3: #a75e6e;
-  --color-focus: #2563eb;
-  --color-danger: #b0473e;
+  /* From the same lavender family as --color-accent, not Tailwind blue-600 */
+  --color-focus: #6f5aa8;
 }
 
 *,

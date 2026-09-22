@@ -1,12 +1,12 @@
 .scrollWrapper {
   overflow-x: auto;
-  background: var(--color-bg);
-  border-top: 1px solid var(--color-border);
-  border-radius: 0.5rem;
+  background: var(--surface-bg);
+  border-top: 1px solid var(--surface-border-color);
+  border-radius: var(--surface-radius);
 }
 
 .scrollWrapper:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: var(--focus-ring);
   outline-offset: -2px;
 }
 
@@ -26,7 +26,7 @@
   color: var(--color-text-muted);
   font-weight: 400;
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 2px solid var(--color-border);
   white-space: nowrap;
 }
@@ -40,7 +40,7 @@
   color: var(--color-text-muted);
   font-weight: 400;
   text-align: right;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 2px solid var(--color-border);
   white-space: nowrap;
 }

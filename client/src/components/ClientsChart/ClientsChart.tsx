@@ -8,7 +8,9 @@ interface ClientsChartProps {
   months: string[];
 }
 
-const CHART_COLORS = ['#b29df8', '#f4beb4', '#a75e6e', '#8fbf9f', '#7fa8c9'];
+// Neutral tonal palette for the branch stack — not the design's literal
+// channel hexes (see tokens.css --chart-color-*).
+const CHART_COLORS = ['var(--chart-color-1)', 'var(--chart-color-2)', 'var(--chart-color-3)'];
 
 /**
  * The mockup rounds the whole stacked column (4px), not each segment — so
