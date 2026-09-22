@@ -13,3 +13,13 @@
   font-weight: 400;
   line-height: 1.25;
 }
+
+/* The client had zero media queries; the chart and table each scroll
+   within their own region regardless of viewport width (see their
+   overflow-x: auto wrappers), but the page's own padding shouldn't stay
+   fixed at the desktop value once the viewport gets tight. */
+@media (max-width: 40rem) {
+  .dashboard {
+    padding: var(--space-4);
+  }
+}
