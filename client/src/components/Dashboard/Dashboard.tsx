@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { ClientNode } from '@nevis/shared';
 import { useCompanyData } from '../../hooks/useCompanyData';
 import { useExpandedRows } from '../../hooks/useExpandedRows';
@@ -31,7 +31,7 @@ interface DashboardContentProps {
 function DashboardContent({ company, months }: DashboardContentProps) {
   const { expandedIds, toggle } = useExpandedRows([company.id]);
   const [announcement, setAnnouncement] = useState('');
-  const rows = useMemo(() => flattenVisibleRows(company, expandedIds), [company, expandedIds]);
+  const rows = flattenVisibleRows(company, expandedIds);
 
   const handleToggle = (row: FlatRow) => {
     const willExpand = !expandedIds.has(row.node.id);
